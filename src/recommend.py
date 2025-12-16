@@ -20,28 +20,37 @@ class RecommendationService:
         self.strategy = model_strategy
         self.data_path = data_path
         
-        # Load Raw Data
-        try:
+        # Load Optimized Metadata (Deployment Mode)
+        if os.path.exists('data/data_small.csv'):
+            print("Loading optimized metadata...")
+            self.raw_data = pd.read_csv('data/data_small.csv')
+        else:
+            print("Loading raw data...")
             self.raw_data = data_loader.load_data(data_path)
-        except Exception as e:
-            raise e
-        
-        # Load/Process Features
-        # Note: In a real app, we might load pre-computed features from artifacts.
-        # Here we run the pipeline to ensure consistency.
-        print("Loading features...")
-        features_df = run_preprocessing_pipeline(data_path)
-        
-        # Feature Engineering
-        self.feature_engine = FeatureEngine(features_df)
-        self.features, self.popularity = self.feature_engine.extract_baseline_features()
-        
-        # Apply weighting/damping if desired (defaulting to baseline for now)
-        # self.feature_engine.apply_feature_weighting(...) 
+            
+        # Load Optimized Features (Deployment Mode)
+        if os.path.exists('artifacts/features.joblib'):
+            print("Loading pre-computed features...")
+            self.features = joblib.load('artifacts/features.joblib')
+            # Verify alignment if possible, assuming index matches 
+            # (reset_index if needed, but data_small was sliced from data so index 0..N should match)
+        else:
+            # Fallback for Development/Training
+            print("Running preprocessing pipeline (slow)...")
+            features_df = run_preprocessing_pipeline(data_path)
+            
+            # Feature Engineering
+            self.feature_engine = FeatureEngine(features_df)
+            self.features, self.popularity = self.feature_engine.extract_baseline_features()
         
         # Initialize Recommender
         self.recommender = Recommender(self.features, strategy=self.strategy)
-        self.recommender.train()
+        # Check if model exists to avoid re-training in prod if strategy is knn
+        if self.strategy == 'knn' and os.path.exists(config.KNN_MODEL_PATH):
+             print(f"Loading existing model from {config.KNN_MODEL_PATH}")
+             self.recommender.model = joblib.load(config.KNN_MODEL_PATH)
+        else:
+             self.recommender.train()
 
     def get_recommendations_by_name(self, track_name, k=10):
         """
