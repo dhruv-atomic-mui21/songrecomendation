@@ -33,7 +33,7 @@ To optimize performance, we used dimensionality reduction. This plot shows the c
 
 ## 🌐 Web Interface
 The project includes a modern, responsive web frontend.
-**Live Demo:** [INSERT DEPLOYED LINK HERE]
+<!-- **Live Demo:** [INSERT DEPLOYED LINK HERE] -->
 
 ![Web Interface Preview](assets/images/web_preview.png)
 *(Run the app locally to see the UI)*
@@ -70,7 +70,7 @@ song-recommendation/
 ### 1. Installation
 Clone the repository and install dependencies:
 ```bash
-git clone https://github.com/yourusername/song-recommendation.git
+git clone https://github.com/dhruv-atomic-mui21/songrecomendation.git
 cd song-recommendation
 pip install -r requirements.txt
 ```
