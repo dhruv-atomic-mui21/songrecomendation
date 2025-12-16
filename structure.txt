@@ -1,0 +1,28 @@
+spotify-recommender/
+│
+├── notebooks/
+│   ├── 01_eda.ipynb
+│   ├── 02_features.ipynb
+│   ├── 03_models.ipynb
+│   └── 04_evaluation.ipynb
+│
+├── src/
+│   ├── __init__.py
+│   ├── config.py
+│   ├── data_loader.py
+│   ├── preprocessing.py
+│   ├── features.py
+│   ├── models.py
+│   ├── recommend.py
+│   └── metrics.py
+│
+├── artifacts/
+│   ├── scalers/
+│   ├── models/
+│   └── embeddings/
+│
+├── data/
+│   └── raw/
+│
+├── requirements.txt
+└── README.md
