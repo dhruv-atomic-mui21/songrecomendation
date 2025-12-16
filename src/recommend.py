@@ -78,8 +78,12 @@ class RecommendationService:
         results = []
         for i, idx in enumerate(indices):
             track_info = self.raw_data.iloc[idx].to_dict()
-            # Add score
-            track_info['distance_score'] = float(scores[i]) if len(scores) > i else 0.0
+            distance = float(scores[i]) if len(scores) > i else 0.0
+            
+            # Add metadata
+            track_info['distance_score'] = distance
+            track_info['similarity_score'] = 1.0 - distance
+            track_info['rank'] = i + 1
             
             # Clean up numpy types for JSON serialization if needed
             # (pandas usually handles this well in to_dict, but being safe)

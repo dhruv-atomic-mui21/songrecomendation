@@ -67,7 +67,8 @@ class Recommender:
         if item_index >= len(self.features_df):
             raise IndexError("Item index out of bounds")
 
-        target_vector = self.features_df.iloc[item_index].values.reshape(1, -1)
+        # Keep as DataFrame to preserve feature names for KNN
+        target_vector = self.features_df.iloc[[item_index]]
 
         if self.strategy == 'cosine':
             # Calculate cosine similarity against all items

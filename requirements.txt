@@ -1,7 +1,10 @@
-
 pandas
 numpy
 scikit-learn
 joblib
 jupyter
 notebook
+flask
+flask-cors
+pytest
+matplotlib

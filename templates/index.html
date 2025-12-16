@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SonicMatch | AI Song Recommender</title>
+
+<style>
+:root {
+    --bg-gradient: linear-gradient(135deg, #0f172a, #1e1b4b);
+    --card-bg: rgba(255,255,255,0.05);
+    --card-border: rgba(255,255,255,0.1);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --accent: #818cf8;
+}
+
+* {
+    box-sizing: border-box;
+    font-family: Inter, system-ui, sans-serif;
+}
+
+body {
+    background: var(--bg-gradient);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.container {
+    width: 100%;
+    max-width: 820px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(to right, #818cf8, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 2.5rem;
+}
+
+.search-box {
+    position: relative;
+    margin-bottom: 3rem;
+}
+
+input {
+    width: 100%;
+    padding: 1.1rem 1.4rem;
+    font-size: 1.05rem;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    color: white;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+button {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--accent);
+    border: none;
+    padding: 0.6rem 1.4rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.suggestions {
+    position: absolute;
+    width: 100%;
+    background: #020617;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    margin-top: 6px;
+    text-align: left;
+    display: none;
+    z-index: 10;
+}
+
+.suggestions div {
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.suggestions div:hover {
+    background: rgba(255,255,255,0.08);
+    color: white;
+}
+
+.loading, .error {
+    margin-top: 1rem;
+    color: var(--text-secondary);
+    display: none;
+}
+
+.error {
+    color: #ef4444;
+}
+
+.results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.4rem;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: 0.4s ease;
+}
+
+.results.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 1.2rem;
+    text-align: left;
+}
+
+.track-name {
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+}
+
+.track-artist {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.score-bar {
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    margin-top: 1rem;
+}
+
+.score-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #c084fc);
+    border-radius: 4px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+    <h1>SonicMatch</h1>
+    <p class="subtitle">Content-Based AI Song Recommendation</p>
+
+    <div class="search-box">
+        <input id="query" placeholder="Type a song name..." autocomplete="off" />
+        <button onclick="recommend()">Discover</button>
+        <div id="suggestions" class="suggestions"></div>
+        <div id="loading" class="loading">Analyzing audio features…</div>
+        <div id="error" class="error"></div>
+    </div>
+
+    <div id="results" class="results"></div>
+</div>
+
+<script>
+const input = document.getElementById("query");
+const suggestionsBox = document.getElementById("suggestions");
+
+input.addEventListener("input", async () => {
+    const q = input.value.trim();
+    if (q.length < 3) {
+        suggestionsBox.style.display = "none";
+        return;
+    }
+
+    try {
+        const res = await fetch(`/suggest?q=${encodeURIComponent(q)}`);
+        if (!res.ok) return;
+
+        const suggestions = await res.json();
+        if (!suggestions.length) return;
+
+        suggestionsBox.innerHTML = "";
+        suggestions.forEach(s => {
+            const div = document.createElement("div");
+            div.textContent = s;
+            div.onclick = () => {
+                input.value = s;
+                suggestionsBox.style.display = "none";
+            };
+            suggestionsBox.appendChild(div);
+        });
+        suggestionsBox.style.display = "block";
+    } catch {}
+});
+
+async function recommend() {
+    const q = input.value.trim();
+    if (!q) return;
+
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("error").style.display = "none";
+    suggestionsBox.style.display = "none";
+
+    try {
+        const res = await fetch("/recommend", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ song_name: q, k: 6 })
+        });
+
+        const data = await res.json();
+        document.getElementById("loading").style.display = "none";
+
+        if (!res.ok) {
+            throw new Error(data.error || "Song not found");
+        }
+
+        render(data.recommendations);
+    } catch (e) {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("error").textContent = e.message;
+        document.getElementById("error").style.display = "block";
+    }
+}
+
+function render(recs) {
+    const container = document.getElementById("results");
+    container.innerHTML = "";
+
+    recs.forEach(r => {
+        const sim = Math.round((r.similarity_score ?? (1 - r.distance_score)) * 100);
+        const artist = r.artists.replace(/\['|'\]/g, "").replace(/', '/g, ", ");
+
+        container.innerHTML += `
+        <div class="card">
+            <div class="track-name">${r.name}</div>
+            <div class="track-artist">${artist}</div>
+            <div class="score-bar">
+                <div class="score-fill" style="width:${sim}%"></div>
+            </div>
+        </div>`;
+    });
+
+    container.classList.add("visible");
+}
+
+input.addEventListener("keydown", e => {
+    if (e.key === "Enter") recommend();
+});
+</script>
+</body>
+</html>
