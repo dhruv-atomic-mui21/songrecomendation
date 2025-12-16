@@ -1,0 +1,30 @@
+
+# Vercel Ignore File
+
+# Source Control
+.git/
+.gitignore
+
+# Environment
+.env
+__pycache__/
+*.pyc
+
+# Development Assets
+notebooks/
+assets/
+tests/
+scripts/
+structure.txt
+
+# Unused Data (Only data.csv is used by app)
+data/data_by_artist.csv
+data/data_by_genres.csv
+data/data_by_year.csv
+data/data_w_genres.csv
+
+# Artifacts - we keep these, but naming them to be sure we don't ignore them by accident
+# artifacts/
+
+# Configs
+# we keep requirements.txt and vercel.json
