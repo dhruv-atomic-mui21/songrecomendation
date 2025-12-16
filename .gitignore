@@ -1,0 +1,30 @@
+
+# Environment Variables
+.env
+.env.local
+
+# Kaggle API
+kaggle.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+
+# Distribution / Installs
+build/
+dist/
+*.egg-info/
+venv/
+env/
+
+# Data (Optional: usually good to ignore raw data if large, but user might want to keep it if small. 
+# Recommender systems usually ignore 'data/' and 'artifacts/' but for a showcase repo usually we exclude raw data but keep artifacts if small.
+# I'll exclude large raw data zip if present, but user didn't ask to exclude data.)
